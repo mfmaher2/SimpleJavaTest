@@ -2,13 +2,15 @@
 //import com.datastax.driver.core.Row;
 //import com.datastax.driver.dse.DseCluster;
 //import com.datastax.driver.dse.DseSession;
-
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.jmx.JmxReporter;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 import java.nio.file.Paths;
 
 public class Basic_example {
@@ -19,11 +21,22 @@ public class Basic_example {
 
         Basic_example client = new Basic_example();
         try {
+
             client.connect();
-            client.createSchema();
-            client.insertData(20);
+//            MetricRegistry registry = client.session.getMetrics()
+//                    .orElseThrow(() -> new IllegalStateException("Metrics are disabled"))
+//                    .getRegistry();
+//
+//            JmxReporter reporter =
+//                    JmxReporter.forRegistry(registry)
+//                            .inDomain("com.datastax.oss.driver")
+//                            .build();
+//            reporter.start();
+//            client.createSchema();
+//            client.insertData(20);
             client.queryData();
-            client.dropKeyspace();
+//            client.dropKeyspace();
+//            reporter.stop();
         }
         finally {
 //            if (client.cluster != null) client.close();
@@ -59,12 +72,12 @@ public class Basic_example {
 //                .build();
 
         // Using secure connect bundle
-        session = CqlSession.builder()
-                .withCloudSecureConnectBundle(Paths.get("C:\\Users\\Michael Maher\\Documents\\Projects\\secure-connect-mm2023.zip"))
-                .withAuthCredentials("YMtUZpoKSITuMNXaZmejFiFS","jDtaWXftWd5Bj.z.YgOlmZgkJAypvRhCSAEJNBkyYOudPDfkLCdtIojw0Lt1e-n--aoOf0PIx3TkKntyOj9Ny5P4DB_iQU,lzkp+_088KuIhlT_+w2dZpfu.HFL+p24L")
-                .build();
+//        session = CqlSession.builder()
+//                .withCloudSecureConnectBundle(Paths.get("/Users/mike.maher/Documents/dev/demo/secure-connect-ks1.zip"))
+//                .withAuthCredentials("moImCNyzPsOuEEsLsiPCyilR","-,mnT_KmxMWiIf,Qeyxj3tbNMA-E42ohHqEDEwq3SAGvwO3PSCY1KoIiMbMkOcYTZTvGovAuDHyEQ.xbG.Z5H1_+3ub-qUch_3OeiNb9SFW--r2BBLjLukMZCLpgtsEJ")
+//                .build();
 
-//        session = CqlSession.builder().build();
+        session = CqlSession.builder().addContactPoint(new InetSocketAddress("172.31.45.123", 9042)).build();
 //        cluster = DseCluster.builder().addContactPoint("127.0.0.1").build();
 //        session = cluster.connect();
 //        System.out.printf("Connected session: %s%n", session.getCluster());
@@ -102,15 +115,20 @@ public class Basic_example {
      * Query the data and print result
      */
     public void queryData() {
-        String query = "SELECT * FROM ks1.example;";
+        String query = "SELECT * FROM basic.group_info_v1;";
+//        String query = "SELECT * FROM ks1.example;";
         ResultSet results = session.execute(query);
-        System.out.printf("%-20s\t%-20s%n", "id", "name");
+        System.out.printf("%-20s\t%-20s%n", "account_number", "opco", "group_id__number");
         System.out.println("-----------------------+--------------------");
         for (Row row : results) {
             System.out.printf(
                     "%-20s\t%-20s%n",
-                    row.getInt("id"), row.getString("name")
+                    row.getString("account_number"), row.getString("opco"), row.getString("group_id__number")
             );
+//            System.out.printf(
+//                    "%-20s\t%-20s%n",
+//                    row.getInt("id"), row.getString("name")
+//            );
         }
     }
 
